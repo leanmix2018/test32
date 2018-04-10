@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration packages="com.splunk.logging, com.mulesoft.ch.logging.appender">
+    <Appenders>
+        <RollingFile name="file" fileName="${dollar}{sys:mule.home}${dollar}{sys:file.separator}logs${dollar}{sys:file.separator}${artifactId}.log"
+                     filePattern="${dollar}{sys:mule.home}${dollar}{sys:file.separator}logs${dollar}{sys:file.separator}${artifactId}-%i.log">
+            <PatternLayout pattern="%d [%t] %-5p %c - %m%n" />
+            <SizeBasedTriggeringPolicy size="10 MB" />
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <Http name="splunk" url="http://35.177.115.209:8088" token="6B1B202D-00FE-4DCD-AF44-97A266569703i" disableCertificateValidation="true" batch_size_count="1">
+            <PatternLayout pattern="%m" />
+        </Http>
+        <Log4J2CloudhubLogAppender name="cloudhub"
+                                   addressProvider="com.mulesoft.ch.logging.DefaultAggregatorAddressProvider"
+                                   applicationContext="com.mulesoft.ch.logging.DefaultApplicationContext"
+                                   appendRetryIntervalMs="${dollar}{sys:logging.appendRetryInterval}"
+                                   appendMaxAttempts="${dollar}{sys:logging.appendMaxAttempts}"
+                                   batchSendIntervalMs="${dollar}{sys:logging.batchSendInterval}"
+                                   batchMaxRecords="${dollar}{sys:logging.batchMaxRecords}"
+                                   memBufferMaxSize="${dollar}{sys:logging.memBufferMaxSize}"
+                                   journalMaxWriteBatchSize="${dollar}{sys:logging.journalMaxBatchSize}"
+                                   journalMaxFileSize="${dollar}{sys:logging.journalMaxFileSize}"
+                                   clientMaxPacketSize="${dollar}{sys:logging.clientMaxPacketSize}"
+                                   clientConnectTimeoutMs="${dollar}{sys:logging.clientConnectTimeout}"
+                                   clientSocketTimeoutMs="${dollar}{sys:logging.clientSocketTimeout}"
+                                   serverAddressPollIntervalMs="${dollar}{sys:logging.serverAddressPollInterval}"
+                                   serverHeartbeatSendIntervalMs="${dollar}{sys:logging.serverHeartbeatSendIntervalMs}"
+                                   statisticsPrintIntervalMs="${dollar}{sys:logging.statisticsPrintIntervalMs}">
+
+            <PatternLayout pattern="[%d{MM-dd HH:mm:ss}] %-5p %c{1} [%t]: %m%n"/>
+        </Log4J2CloudhubLogAppender>
+    </Appenders>
+    <Loggers>
+        <!-- CXF is used heavily by Mule for web services -->
+        <AsyncLogger name="org.apache.cxf" level="WARN"/>
+
+        <!-- Apache Commons tend to make a lot of noise which can clutter the log-->
+        <AsyncLogger name="org.apache" level="WARN"/>
+
+        <!-- Reduce startup noise -->
+        <AsyncLogger name="org.springframework.beans.factory" level="WARN"/>
+
+        <!-- Mule classes -->
+        <AsyncLogger name="org.mule" level="INFO"/>
+        <AsyncLogger name="com.mulesoft" level="INFO"/>
+
+        <!-- Reduce DM verbosity -->
+        <AsyncLogger name="org.jetel" level="WARN"/>
+        <AsyncLogger name="Tracking" level="WARN"/>
+
+        <AsyncRoot level="INFO">
+            <AppenderRef ref="file" />
+            <AppenderRef ref="splunk" />
+            <AppenderRef ref="cloudhub"/>
+        </AsyncRoot>
+    </Loggers>
+</Configuration>
